@@ -88,12 +88,14 @@
       <div class="result-item">
         <strong>Mini Future Stop Loss:</strong>
         <span id="stopLossMiniFuture">-</span>
+        <span id="stopLossMiniFuturePercentage" style="color: #666">(-)</span>
       </div>
 
       <div class="result-item">
         <strong>Underlying Stop Loss</strong>
         <span id="bullStopLossUnderlying" style="color: green">-</span> /
         <span id="bearStopLossUnderlying" style="color: red">-</span>
+        <span id="stopLossUnderlyingPercentage" style="color: #666">(-)</span>
       </div>
 
       <div class="result-item">
@@ -161,9 +163,10 @@
 
         // Calculate stop loss for bear scenario (short position)
         const bearStopLossUnderlying = underlyingEntryPrice + adjustedAtrValue;
-        const bearStopLossMiniFuture =
-          miniFuturePrice *
-          (1 + (adjustedAtrValue / underlyingEntryPrice) * leverage);
+
+        // Calculate stop loss percentages
+        const miniFutureStopLossPercentage = ((bullStopLossMiniFuture - miniFuturePrice) / miniFuturePrice * 100).toFixed(2);
+        const underlyingStopLossPercentage = ((bullStopLossUnderlying - underlyingEntryPrice) / underlyingEntryPrice * 100).toFixed(2);
 
         // Display results
         document.getElementById("adjustedAtrPercentage").textContent =
@@ -176,8 +179,12 @@
           bullStopLossMiniFuture.toFixed(2);
         document.getElementById("bearStopLossUnderlying").textContent =
           bearStopLossUnderlying.toFixed(2);
-        document.getElementById("bearStopLossMiniFuture").textContent =
-          bearStopLossMiniFuture.toFixed(2);
+        
+        // Display stop loss percentages
+        document.getElementById("stopLossMiniFuturePercentage").textContent = 
+          `(${miniFutureStopLossPercentage}%)`;
+        document.getElementById("stopLossUnderlyingPercentage").textContent = 
+          `(${underlyingStopLossPercentage}%)`;
       }
     </script>
   </body>

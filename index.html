@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ORB Trading Calculator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .input-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .results {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+      }
+      .result-item {
+        margin-bottom: 10px;
+      }
+      .error-message {
+        color: red;
+        margin-top: 10px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ORB Trading Strategy Calculator</h1>
+
+    <form id="calculatorForm">
+      <div class="input-group">
+        <label for="miniFuturePrice">Purchase Price of Mini Future:</label>
+        <input type="number" id="miniFuturePrice" placeholder="e.g., 400" required />
+      </div>
+
+      <div class="input-group">
+        <label for="leverage">Leverage:</label>
+        <input type="number" id="leverage" placeholder="e.g., 5" required />
+      </div>
+
+      <div class="input-group">
+        <label for="underlyingEntryPrice">Underlying Price ORB Entry:</label>
+        <input type="number" id="underlyingEntryPrice" placeholder="e.g., 2100" required />
+      </div>
+
+      <div class="input-group">
+        <label for="atr14Day">14 Day ATR:</label>
+        <input type="number" id="atr14Day" placeholder="e.g., 150" required />
+      </div>
+
+      <button type="submit">Calculate Stop Loss</button>
+      <div id="errorMessage" class="error-message">Please fill in all fields before calculating.</div>
+    </form>
+
+    <div class="results">
+      <h2>Results</h2>
+
+      <div class="result-item">
+        <strong>Mini Future Stop Loss:</strong>
+        <span id="stopLossMiniFuture">-</span>
+      </div>
+
+      <div class="result-item">
+        <strong>Underlying Stop Loss</strong>
+        <span id="bullStopLossUnderlying" style="color: green">-</span> /
+        <span id="bearStopLossUnderlying" style="color: red">-</span>
+      </div>
+
+      <div class="result-item">
+        <strong>Adjusted ATR Percentage (5% at leverage 3):</strong>
+        <span id="adjustedAtrPercentage">-</span>
+      </div>
+
+      <div class="result-item">
+        <strong>Adjusted ATR Value:</strong>
+        <span id="adjustedAtrValue">-</span>
+      </div>
+    </div>
+
+    <script>
+      // Add event listener for form submission
+      document.getElementById('calculatorForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent default form submission
+        
+        // Check if any field is empty
+        const inputs = document.querySelectorAll('#calculatorForm input[type="number"]');
+        let hasEmptyField = false;
+        
+        inputs.forEach(input => {
+          if (!input.value.trim()) {
+            hasEmptyField = true;
+          }
+        });
+
+        if (hasEmptyField) {
+          document.getElementById('errorMessage').style.display = 'block';
+        } else {
+          document.getElementById('errorMessage').style.display = 'none';
+          calculateStopLoss();
+        }
+      });
+
+      // Add input event listeners to hide error when user starts typing
+      document.querySelectorAll('#calculatorForm input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+          document.getElementById('errorMessage').style.display = 'none';
+        });
+      });
+
+      function calculateStopLoss() {
+        // Get input values
+        const miniFuturePrice = parseFloat(
+          document.getElementById("miniFuturePrice").value
+        );
+        const leverage = parseFloat(document.getElementById("leverage").value);
+        const underlyingEntryPrice = parseFloat(
+          document.getElementById("underlyingEntryPrice").value
+        );
+        const atr14Day = parseFloat(document.getElementById("atr14Day").value);
+
+        // Calculate adjusted ATR percentage based on leverage
+        // 5% is the benchmark at leverage 3
+        const adjustedAtrPercentage = (5 * leverage) / 3 / 100;
+        const adjustedAtrValue = atr14Day * adjustedAtrPercentage;
+
+        // Calculate stop loss for bull scenario (long position)
+        const bullStopLossUnderlying = underlyingEntryPrice - adjustedAtrValue;
+        const bullStopLossMiniFuture =
+          miniFuturePrice *
+          (1 - (adjustedAtrValue / underlyingEntryPrice) * leverage);
+
+        // Calculate stop loss for bear scenario (short position)
+        const bearStopLossUnderlying = underlyingEntryPrice + adjustedAtrValue;
+        const bearStopLossMiniFuture =
+          miniFuturePrice *
+          (1 + (adjustedAtrValue / underlyingEntryPrice) * leverage);
+
+        // Display results
+        document.getElementById("adjustedAtrPercentage").textContent =
+          (adjustedAtrPercentage * 100).toFixed(2) + "%";
+        document.getElementById("adjustedAtrValue").textContent =
+          adjustedAtrValue.toFixed(2);
+        document.getElementById("bullStopLossUnderlying").textContent =
+          bullStopLossUnderlying.toFixed(2);
+        document.getElementById("stopLossMiniFuture").textContent =
+          bullStopLossMiniFuture.toFixed(2);
+        document.getElementById("bearStopLossUnderlying").textContent =
+          bearStopLossUnderlying.toFixed(2);
+        document.getElementById("bearStopLossMiniFuture").textContent =
+          bearStopLossMiniFuture.toFixed(2);
+      }
+    </script>
+  </body>
+</html>
